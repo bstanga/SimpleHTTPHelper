@@ -2,6 +2,8 @@ package com.bogdanstanga.httphelper;
 
 import com.bogdanstanga.httphelper.interfaces.OnRequestListener;
 
+import java.io.IOException;
+
 public class HttpHelper {
 
     private HttpRequest mHttpRequest;
@@ -43,8 +45,17 @@ public class HttpHelper {
         return this;
     }
 
+    public HttpHelper setLog(String tag) {
+        mHttpRequest.setLog(tag);
+        return this;
+    }
+
     public void execute() throws RuntimeException {
         mHttpRequest.load();
+    }
+
+    public String executeNonAsync() throws RuntimeException, IOException {
+        return mHttpRequest.loadNonAsync();
     }
 
 }

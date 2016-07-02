@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/SimpleHTTPHelper.iml" filepath="$PROJECT_DIR$/SimpleHTTPHelper.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/simple-http-helper/simple-http-helper.iml" filepath="$PROJECT_DIR$/simple-http-helper/simple-http-helper.iml" />
     </modules>
   </component>
 </project>

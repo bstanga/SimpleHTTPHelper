@@ -1,6 +1,7 @@
 package com.bogdanstanga.httphelper;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.bogdanstanga.httphelper.interfaces.OnRequestListener;
 
@@ -28,6 +29,7 @@ public class HttpRequest extends AsyncTask<Void, Integer, Object> {
     private HashMap<String, String> mParameters = new HashMap<>();
     private HashMap<String, String> mHeaders = new HashMap<>();
     private boolean mGZIPDecoding = false;
+    private String mLogTag;
 
     private OnRequestListener mOnRequestListener;
 
@@ -43,6 +45,10 @@ public class HttpRequest extends AsyncTask<Void, Integer, Object> {
 
     public void setListener(OnRequestListener onRequestListener) {
         this.mOnRequestListener = onRequestListener;
+    }
+
+    public void setLog(String logTag) {
+        this.mLogTag = logTag;
     }
 
     public void addParameter(String key, String value) {
@@ -65,41 +71,59 @@ public class HttpRequest extends AsyncTask<Void, Integer, Object> {
         }
     }
 
+    public String loadNonAsync() throws IOException {
+        if (mUrl == null) {
+            throw new RuntimeException("The http request does not have any URL specified.");
+        } else {
+            return executeRequest();
+        }
+    }
+
     @Override
     protected Object doInBackground(Void... parameters) {
         try {
-            if (mMethod.equalsIgnoreCase(HttpHelper.GET)) {
-                String params = getRequestParams();
-                if (params.length() > 0) {
-                    mUrl += "?" + params;
-                }
-            }
-            URL url = new URL(mUrl);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            for (Map.Entry<String, String> entry : mHeaders.entrySet()) {
-                conn.setRequestProperty(entry.getKey(), entry.getValue());
-            }
-            conn.setDoInput(true);
-            conn.setDoOutput(false);
-            if (mMethod.equalsIgnoreCase(HttpHelper.POST)) {
-                conn.setConnectTimeout(60 * 1000);
-                conn.setRequestMethod(mMethod);
-                OutputStream os = conn.getOutputStream();
-                BufferedWriter writer = new BufferedWriter(
-                        new OutputStreamWriter(os, ENCODING));
-                writer.write(getRequestParams());
-                writer.flush();
-                writer.close();
-                os.close();
-            }
-            conn.connect();
-            InputStream in = new BufferedInputStream(conn.getInputStream());
-            String stringResult = mGZIPDecoding ? decodeGZIP(in) : IOUtils.toString(in, ENCODING);
-            conn.disconnect();
-            return stringResult;
+            return executeRequest();
         } catch (Exception e) {
             return e;
         }
+    }
+
+    private String executeRequest() throws IOException {
+        if (mMethod.equalsIgnoreCase(HttpHelper.GET)) {
+            String params = getRequestParams();
+            if (params.length() > 0) {
+                mUrl += "?" + params;
+            }
+        }
+        String log = mMethod + "\n" + mUrl;
+        URL url = new URL(mUrl);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        for (Map.Entry<String, String> entry : mHeaders.entrySet()) {
+            conn.setRequestProperty(entry.getKey(), entry.getValue());
+        }
+        conn.setDoInput(true);
+        conn.setDoOutput(false);
+        if (mMethod.equalsIgnoreCase(HttpHelper.POST)) {
+            conn.setConnectTimeout(60 * 1000);
+            conn.setRequestMethod(mMethod);
+            OutputStream os = conn.getOutputStream();
+            BufferedWriter writer = new BufferedWriter(
+                    new OutputStreamWriter(os, ENCODING));
+            String params = getRequestParams();
+            writer.write(params);
+            writer.flush();
+            writer.close();
+            os.close();
+            log += "\n" + params.replaceAll("=", "\n");
+        }
+        if (mLogTag != null) {
+            Log.i(mLogTag, log);
+        }
+        conn.connect();
+        InputStream in = new BufferedInputStream(conn.getInputStream());
+        String stringResult = mGZIPDecoding ? decodeGZIP(in) : IOUtils.toString(in, ENCODING);
+        conn.disconnect();
+        return stringResult;
     }
 
     @Override
