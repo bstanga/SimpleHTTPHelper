@@ -1,3 +1,3 @@
 # SimpleHTTPHelper
 
-com.bogdanstanga:simple-http-helper:1.0.0
+com.bogdanstanga:simple-http-helper:1.0.1
